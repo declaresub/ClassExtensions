@@ -418,6 +418,49 @@
   <ItemParams>s() as String</ItemParams>
   <ItemResult>String()</ItemResult>
  </Method>
+ <Method>
+  <ItemName>Reverse</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function Reverse(s() as String) As String()</SourceLine>
+   <SourceLine>#pragma disableBackgroundTasks</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim t() as String</SourceLine>
+   <SourceLine>dim U as Integer = UBound(s)</SourceLine>
+   <SourceLine>redim t(U)</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>for i as Integer = 0 to U</SourceLine>
+   <SourceLine>t(U - i) = s(i)</SourceLine>
+   <SourceLine>next</SourceLine>
+   <SourceLine>return t</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>s() as String</ItemParams>
+  <ItemResult>String()</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>Reverse</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function Reverse(s as String) As String</SourceLine>
+   <SourceLine>return Join(Reverse(Split(s, "")), "")</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>s as String</ItemParams>
+  <ItemResult>String</ItemResult>
+ </Method>
  <ViewBehavior>
   <ViewProperty>
    <ObjName>Name</ObjName>
