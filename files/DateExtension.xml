@@ -14,22 +14,12 @@
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Function StringValue(extends d as Date, format as String) As String</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
    <SourceLine>#if targetMacOS</SourceLine>
    <SourceLine>soft declare function strftime lib SystemFramework (s as Ptr, maxsize as Integer, format as CString, ByRef timeptr as tm_bsd) as Integer</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>dim buffer as new MemoryBlock(1024)</SourceLine>
    <SourceLine></SourceLine>
-   <SourceLine>dim timeptr as tm_bsd</SourceLine>
-   <SourceLine>timeptr.tm_sec = d.Second</SourceLine>
-   <SourceLine>timeptr.tm_min = d.Minute</SourceLine>
-   <SourceLine>timeptr.tm_hour = d.Hour</SourceLine>
-   <SourceLine>timeptr.tm_mday = d.Day</SourceLine>
-   <SourceLine>timeptr.tm_mon = d.Month - 1</SourceLine>
-   <SourceLine>timeptr.tm_year = d.Year - 1900</SourceLine>
-   <SourceLine>timeptr.tm_isdst = 1</SourceLine>
-   <SourceLine></SourceLine>
+   <SourceLine>dim timeptr as tm_bsd = Make_tm_bsd(d)</SourceLine>
    <SourceLine>dim strftime_result as Integer = strftime(buffer, buffer.Size, format, timeptr)</SourceLine>
    <SourceLine>if strftime_result &gt; 0 then</SourceLine>
    <SourceLine>return DefineEncoding(buffer.CString(0), Encodings.SystemDefault)</SourceLine>
@@ -52,17 +42,30 @@
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function Make_tm_bsd(d as Date) As tm_bsd</SourceLine>
-   <SourceLine>'struct tm *localtime(const time_t *timer)</SourceLine>
+   <SourceLine>Function Make_tm_bsd(d as Date=nil) As tm_bsd</SourceLine>
+   <SourceLine>if d is nil then</SourceLine>
+   <SourceLine>d = new Date</SourceLine>
+   <SourceLine>end if</SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine>#if targetMacOS</SourceLine>
+   <SourceLine>soft declare function localtime lib SystemFramework (ByRef t as Integer) as Ptr</SourceLine>
    <SourceLine></SourceLine>
+   <SourceLine>dim secondsSinceEpoch as Integer = CType(d.TotalSeconds - 3600.0*d.GMTOffset - unix_epoch.TotalSeconds, Integer)</SourceLine>
+   <SourceLine>dim p as Ptr = localtime(secondsSinceEpoch)</SourceLine>
+   <SourceLine>if p &lt;&gt; nil then</SourceLine>
+   <SourceLine>return p.tm_bsd</SourceLine>
+   <SourceLine>else</SourceLine>
+   <SourceLine>dim t as tm_bsd</SourceLine>
+   <SourceLine>return t</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>#endif</SourceLine>
    <SourceLine>End Function</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
   <AliasName></AliasName>
   <ItemFlags>33</ItemFlags>
   <Shared>0</Shared>
-  <ItemParams>d as Date</ItemParams>
+  <ItemParams>d as Date=nil</ItemParams>
   <ItemResult>tm_bsd</ItemResult>
  </Method>
  <Method>
@@ -72,21 +75,19 @@
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
    <SourceLine>Sub StringValue(extends d as Date, format as String, assigns value as String)</SourceLine>
-   <SourceLine>'char *strptime(const char *buf, const char *format, struct tm *tm);</SourceLine>
-   <SourceLine>'</SourceLine>
-   <SourceLine>'#if targetMacOS</SourceLine>
-   <SourceLine>'soft declare function strptime lib SystemFramework (buf as CString, format as CString, ByRef tm as tm_bsd) as Ptr</SourceLine>
-   <SourceLine>'</SourceLine>
-   <SourceLine>'dim tm as tm_bsd</SourceLine>
-   <SourceLine>'dim p as Ptr = strptime(value, format, tm)</SourceLine>
-   <SourceLine>'if p &lt;&gt; nil then</SourceLine>
-   <SourceLine>'d</SourceLine>
-   <SourceLine>'</SourceLine>
-   <SourceLine>'</SourceLine>
-   <SourceLine>'</SourceLine>
-   <SourceLine>'else</SourceLine>
-   <SourceLine>'raise new UnsupportedFormatException</SourceLine>
-   <SourceLine>'end if</SourceLine>
+   <SourceLine>#if targetMacOS</SourceLine>
+   <SourceLine>soft declare function strptime lib SystemFramework (buf as CString, format as CString, ByRef tm as tm_bsd) as Ptr</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim tm as tm_bsd</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim p as Ptr = strptime(value, format, tm)</SourceLine>
+   <SourceLine>if p &lt;&gt; nil then</SourceLine>
+   <SourceLine>d.TotalSeconds = MakeDateFromtm_bsd(tm).TotalSeconds</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>else</SourceLine>
+   <SourceLine>raise new UnsupportedFormatException</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>#endif</SourceLine>
    <SourceLine>End Sub</SourceLine>
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
@@ -97,17 +98,14 @@
   <ItemResult></ItemResult>
  </Method>
  <Method>
-  <ItemName>unix_epoch</ItemName>
+  <ItemName>unix_epoch_totalseconds</ItemName>
   <Compatibility></Compatibility>
   <Visible>1</Visible>
   <ItemSource>
    <TextEncoding>134217984</TextEncoding>
-   <SourceLine>Function unix_epoch() As Date</SourceLine>
-   <SourceLine></SourceLine>
-   <SourceLine></SourceLine>
+   <SourceLine>Function unix_epoch_totalseconds() As Double</SourceLine>
    <SourceLine>#if targetMacOS</SourceLine>
-   <SourceLine>'struct tm *localtime(const time_t *timer)</SourceLine>
-   <SourceLine>soft declare function gmtime lib SystemFramework (ByRef timer as Integer) as Ptr</SourceLine>
+   <SourceLine>soft declare function gmtime lib SystemFramework (ByRef t as Integer) as Ptr</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>dim t as Integer = 0</SourceLine>
    <SourceLine>dim p as Ptr = gmtime(t)</SourceLine>
@@ -119,9 +117,9 @@
    <SourceLine>d.Hour = tm.tm_hour</SourceLine>
    <SourceLine>d.Minute = tm.tm_min</SourceLine>
    <SourceLine>d.Second = tm.tm_sec</SourceLine>
-   <SourceLine>return d</SourceLine>
+   <SourceLine>return d.TotalSeconds</SourceLine>
    <SourceLine>else</SourceLine>
-   <SourceLine>return nil</SourceLine>
+   <SourceLine>return 0</SourceLine>
    <SourceLine>end if</SourceLine>
    <SourceLine></SourceLine>
    <SourceLine>#endif</SourceLine>
@@ -129,10 +127,73 @@
   </ItemSource>
   <TextEncoding>134217984</TextEncoding>
   <AliasName></AliasName>
-  <ItemFlags>0</ItemFlags>
+  <ItemFlags>33</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams></ItemParams>
+  <ItemResult>Double</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>MakeDateFromtm_bsd</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function MakeDateFromtm_bsd(tm as tm_bsd) As Date</SourceLine>
+   <SourceLine>dim d as Date = unix_epoch</SourceLine>
+   <SourceLine>d.TotalSeconds = d.TotalSeconds + SecondsInOneHour*d.GMTOffset + totalSecondsSinceUnixEpoch(tm)</SourceLine>
+   <SourceLine>return d</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>tm as tm_bsd</ItemParams>
+  <ItemResult>Date</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>unix_epoch</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function unix_epoch() As Date</SourceLine>
+   <SourceLine>static totalseconds as Double = unix_epoch_totalseconds</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim d as new Date</SourceLine>
+   <SourceLine>d.TotalSeconds = totalseconds</SourceLine>
+   <SourceLine>return d</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
   <Shared>0</Shared>
   <ItemParams></ItemParams>
   <ItemResult>Date</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>TotalSecondsSinceUnixEpoch</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function TotalSecondsSinceUnixEpoch(tm as tm_bsd) As Double</SourceLine>
+   <SourceLine>#if targetMacOS</SourceLine>
+   <SourceLine>soft declare function mktime lib SystemFramework (ByRef timeptr as tm_bsd) as Integer</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>return mktime(tm)</SourceLine>
+   <SourceLine>#endif</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>tm as tm_bsd</ItemParams>
+  <ItemResult>Double</ItemResult>
  </Method>
  <Note>
   <ItemName>C declarations</ItemName>
@@ -174,6 +235,128 @@
    <NoteLine>long    tm_gmtoff;    /* offset from CUT in seconds */</NoteLine>
    <NoteLine>char    *tm_zone;    /* timezone abbreviation */</NoteLine>
    <NoteLine>};</NoteLine>
+  </ItemSource>
+  <ItemFlags>0</ItemFlags>
+ </Note>
+ <Note>
+  <ItemName>StringValue</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <NoteLine>StringValue</NoteLine>
+   <NoteLine>The format argument should be a string built using codes from the list below.  Source: http://www.opengroup.org/onlinepubs/007908799/xsh/strftime.html .</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>%a</NoteLine>
+   <NoteLine>is replaced by the locale's abbreviated weekday name.</NoteLine>
+   <NoteLine>%A</NoteLine>
+   <NoteLine>is replaced by the locale's full weekday name.</NoteLine>
+   <NoteLine>%b</NoteLine>
+   <NoteLine>is replaced by the locale's abbreviated month name.</NoteLine>
+   <NoteLine>%B</NoteLine>
+   <NoteLine>is replaced by the locale's full month name.</NoteLine>
+   <NoteLine>%c</NoteLine>
+   <NoteLine>is replaced by the locale's appropriate date and time representation.</NoteLine>
+   <NoteLine>%C</NoteLine>
+   <NoteLine>is replaced by the century number (the year divided by 100 and truncated to an integer) as a decimal number [00-99].</NoteLine>
+   <NoteLine>%d</NoteLine>
+   <NoteLine>is replaced by the day of the month as a decimal number [01,31].</NoteLine>
+   <NoteLine>%D</NoteLine>
+   <NoteLine>same as %m/%d/%y.</NoteLine>
+   <NoteLine>%e</NoteLine>
+   <NoteLine>is replaced by the day of the month as a decimal number [1,31]; a single digit is preceded by a space.</NoteLine>
+   <NoteLine>%h</NoteLine>
+   <NoteLine>same as %b.</NoteLine>
+   <NoteLine>%H</NoteLine>
+   <NoteLine>is replaced by the hour (24-hour clock) as a decimal number [00,23].</NoteLine>
+   <NoteLine>%I</NoteLine>
+   <NoteLine>is replaced by the hour (12-hour clock) as a decimal number [01,12].</NoteLine>
+   <NoteLine>%j</NoteLine>
+   <NoteLine>is replaced by the day of the year as a decimal number [001,366].</NoteLine>
+   <NoteLine>%m</NoteLine>
+   <NoteLine>is replaced by the month as a decimal number [01,12].</NoteLine>
+   <NoteLine>%M</NoteLine>
+   <NoteLine>is replaced by the minute as a decimal number [00,59].</NoteLine>
+   <NoteLine>%n</NoteLine>
+   <NoteLine>is replaced by a newline character.</NoteLine>
+   <NoteLine>%p</NoteLine>
+   <NoteLine>is replaced by the locale's equivalent of either a.m. or p.m.</NoteLine>
+   <NoteLine>%r</NoteLine>
+   <NoteLine>is replaced by the time in a.m. and p.m. notation; in the POSIX locale this is equivalent to %I:%M:%S %p.</NoteLine>
+   <NoteLine>%R</NoteLine>
+   <NoteLine>is replaced by the time in 24 hour notation (%H:%M).</NoteLine>
+   <NoteLine>%S</NoteLine>
+   <NoteLine>is replaced by the second as a decimal number [00,61].</NoteLine>
+   <NoteLine>%t</NoteLine>
+   <NoteLine>is replaced by a tab character.</NoteLine>
+   <NoteLine>%T</NoteLine>
+   <NoteLine>is replaced by the time (%H:%M:%S).</NoteLine>
+   <NoteLine>%u</NoteLine>
+   <NoteLine>is replaced by the weekday as a decimal number [1,7], with 1 representing Monday.</NoteLine>
+   <NoteLine>%U</NoteLine>
+   <NoteLine>is replaced by the week number of the year (Sunday as the first day of the week) as a decimal number [00,53].</NoteLine>
+   <NoteLine>%V</NoteLine>
+   <NoteLine>is replaced by the week number of the year (Monday as the first day of the week) as a decimal number [01,53]. If the week containing 1 January has four or more days in the new year, then it is considered week 1. Otherwise, it is the last week of the previous year, and the next week is week 1.</NoteLine>
+   <NoteLine>%w</NoteLine>
+   <NoteLine>is replaced by the weekday as a decimal number [0,6], with 0 representing Sunday.</NoteLine>
+   <NoteLine>%W</NoteLine>
+   <NoteLine>is replaced by the week number of the year (Monday as the first day of the week) as a decimal number [00,53]. All days in a new year preceding the first Monday are considered to be in week 0.</NoteLine>
+   <NoteLine>%x</NoteLine>
+   <NoteLine>is replaced by the locale's appropriate date representation.</NoteLine>
+   <NoteLine>%X</NoteLine>
+   <NoteLine>is replaced by the locale's appropriate time representation.</NoteLine>
+   <NoteLine>%y</NoteLine>
+   <NoteLine>is replaced by the year without century as a decimal number [00,99].</NoteLine>
+   <NoteLine>%Y</NoteLine>
+   <NoteLine>is replaced by the year with century as a decimal number.</NoteLine>
+   <NoteLine>%Z</NoteLine>
+   <NoteLine>is replaced by the timezone name or abbreviation, or by no bytes if no timezone information exists.</NoteLine>
+   <NoteLine>%%</NoteLine>
+   <NoteLine>is replaced by %.</NoteLine>
+   <NoteLine>If a conversion specification does not correspond to any of the above, the behaviour is undefined.</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>Modified Conversion Specifiers</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>Some conversion specifiers can be modified by the E or O modifier characters to indicate that an alternative format or specification should be used rather than the one normally used by the unmodified conversion specifier. If the alternative format or specification does not exist for the current locale, (see ERA in the XBD specification, Section 5.3.5) the behaviour will be as if the unmodified conversion specification were used.</NoteLine>
+   <NoteLine>%Ec</NoteLine>
+   <NoteLine>is replaced by the locale's alternative appropriate date and time representation.</NoteLine>
+   <NoteLine>%EC</NoteLine>
+   <NoteLine>is replaced by the name of the base year (period) in the locale's alternative representation.</NoteLine>
+   <NoteLine>%Ex</NoteLine>
+   <NoteLine>is replaced by the locale's alternative date representation.</NoteLine>
+   <NoteLine>%EX</NoteLine>
+   <NoteLine>is replaced by the locale' alternative time representation.</NoteLine>
+   <NoteLine>%Ey</NoteLine>
+   <NoteLine>is replaced by the offset from %EC (year only) in the locale's alternative representation.</NoteLine>
+   <NoteLine>%EY</NoteLine>
+   <NoteLine>is replaced by the full alternative year representation.</NoteLine>
+   <NoteLine>%Od</NoteLine>
+   <NoteLine>is replaced by the day of the month, using the locale's alternative numeric symbols, filled as needed with leading zeros if there is any alternative symbol for zero, otherwise with leading spaces.</NoteLine>
+   <NoteLine>%Oe</NoteLine>
+   <NoteLine>is replaced by the day of month, using the locale's alternative numeric symbols, filled as needed with leading spaces.</NoteLine>
+   <NoteLine>%OH</NoteLine>
+   <NoteLine>is replaced by the hour (24-hour clock) using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%OI</NoteLine>
+   <NoteLine>is replaced by the hour (12-hour clock) using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%Om</NoteLine>
+   <NoteLine>is replaced by the month using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%OM</NoteLine>
+   <NoteLine>is replaced by the minutes using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%OS</NoteLine>
+   <NoteLine>is replaced by the seconds using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%Ou</NoteLine>
+   <NoteLine>is replaced by the weekday as a number in the locale's alternative representation (Monday=1).</NoteLine>
+   <NoteLine>%OU</NoteLine>
+   <NoteLine>is replaced by the week number of the year (Sunday as the first day of the week, rules corresponding to %U) using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%OV</NoteLine>
+   <NoteLine>is replaced by the week number of the year (Monday as the first day of the week, rules corresponding to %V) using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%Ow</NoteLine>
+   <NoteLine>is replaced by the number of the weekday (Sunday=0) using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%OW</NoteLine>
+   <NoteLine>is replaced by the week number of the year (Monday as the first day of the week) using the locale's alternative numeric symbols.</NoteLine>
+   <NoteLine>%Oy</NoteLine>
+   <NoteLine>is replaced by the year (offset from %C) using the locale's alternative numeric symbols.</NoteLine>
   </ItemSource>
   <ItemFlags>0</ItemFlags>
  </Note>
@@ -222,10 +405,20 @@
   <ItemDef>System.framework</ItemDef>
   <ItemFlags>33</ItemFlags>
  </Constant>
+ <Constant>
+  <ItemName>SecondsInOneHour</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemName>SecondsInOneHour</ItemName>
+  <ItemType>2</ItemType>
+  <ItemDef>3600.0</ItemDef>
+  <ItemFlags>33</ItemFlags>
+ </Constant>
  <Structure>
   <TextEncoding>134217984</TextEncoding>
   <ItemName>tm_bsd</ItemName>
-  <ItemFlags>0</ItemFlags>
+  <ItemFlags>33</ItemFlags>
   <ItemName>tm_bsd</ItemName>
   <Compatibility></Compatibility>
   <Visible>1</Visible>
