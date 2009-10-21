@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+<RBProject version="2009r4">
+<block type="Module" ID="1727245781">
+ <ObjName>DateExtension</ObjName>
+ <ObjContainerID>0</ObjContainerID>
+ <IsClass>0</IsClass>
+ <ItemFlags>1</ItemFlags>
+ <IsInterface>0</IsInterface>
+ <Compatibility></Compatibility>
+ <Method>
+  <ItemName>StringValue</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function StringValue(extends d as Date, format as String) As String</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>#if targetMacOS</SourceLine>
+   <SourceLine>soft declare function strftime lib SystemFramework (s as Ptr, maxsize as Integer, format as CString, ByRef timeptr as tm_bsd) as Integer</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim buffer as new MemoryBlock(1024)</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim timeptr as tm_bsd</SourceLine>
+   <SourceLine>timeptr.tm_sec = d.Second</SourceLine>
+   <SourceLine>timeptr.tm_min = d.Minute</SourceLine>
+   <SourceLine>timeptr.tm_hour = d.Hour</SourceLine>
+   <SourceLine>timeptr.tm_mday = d.Day</SourceLine>
+   <SourceLine>timeptr.tm_mon = d.Month - 1</SourceLine>
+   <SourceLine>timeptr.tm_year = d.Year - 1900</SourceLine>
+   <SourceLine>timeptr.tm_isdst = 1</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim strftime_result as Integer = strftime(buffer, buffer.Size, format, timeptr)</SourceLine>
+   <SourceLine>if strftime_result &gt; 0 then</SourceLine>
+   <SourceLine>return DefineEncoding(buffer.CString(0), Encodings.SystemDefault)</SourceLine>
+   <SourceLine>else</SourceLine>
+   <SourceLine>return ""</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>#endif</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>extends d as Date, format as String</ItemParams>
+  <ItemResult>String</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>Make_tm_bsd</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function Make_tm_bsd(d as Date) As tm_bsd</SourceLine>
+   <SourceLine>'struct tm *localtime(const time_t *timer)</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>33</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>d as Date</ItemParams>
+  <ItemResult>tm_bsd</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>StringValue</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Sub StringValue(extends d as Date, format as String, assigns value as String)</SourceLine>
+   <SourceLine>'char *strptime(const char *buf, const char *format, struct tm *tm);</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'#if targetMacOS</SourceLine>
+   <SourceLine>'soft declare function strptime lib SystemFramework (buf as CString, format as CString, ByRef tm as tm_bsd) as Ptr</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'dim tm as tm_bsd</SourceLine>
+   <SourceLine>'dim p as Ptr = strptime(value, format, tm)</SourceLine>
+   <SourceLine>'if p &lt;&gt; nil then</SourceLine>
+   <SourceLine>'d</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'</SourceLine>
+   <SourceLine>'else</SourceLine>
+   <SourceLine>'raise new UnsupportedFormatException</SourceLine>
+   <SourceLine>'end if</SourceLine>
+   <SourceLine>End Sub</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>extends d as Date, format as String, assigns value as String</ItemParams>
+  <ItemResult></ItemResult>
+ </Method>
+ <Method>
+  <ItemName>unix_epoch</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function unix_epoch() As Date</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>#if targetMacOS</SourceLine>
+   <SourceLine>'struct tm *localtime(const time_t *timer)</SourceLine>
+   <SourceLine>soft declare function gmtime lib SystemFramework (ByRef timer as Integer) as Ptr</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim t as Integer = 0</SourceLine>
+   <SourceLine>dim p as Ptr = gmtime(t)</SourceLine>
+   <SourceLine>if p &lt;&gt; nil then</SourceLine>
+   <SourceLine>dim tm as tm_bsd = p.tm_bsd(0)</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim d as new Date(1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday)</SourceLine>
+   <SourceLine>d.GMTOffset = 0.0</SourceLine>
+   <SourceLine>d.Hour = tm.tm_hour</SourceLine>
+   <SourceLine>d.Minute = tm.tm_min</SourceLine>
+   <SourceLine>d.Second = tm.tm_sec</SourceLine>
+   <SourceLine>return d</SourceLine>
+   <SourceLine>else</SourceLine>
+   <SourceLine>return nil</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>#endif</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams></ItemParams>
+  <ItemResult>Date</ItemResult>
+ </Method>
+ <Note>
+  <ItemName>C declarations</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <NoteLine>C declarations</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>size_t</NoteLine>
+   <NoteLine>strftime(char *restrict s, size_t maxsize, const char *restrict format, const struct tm *restrict timeptr);</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>#include &lt;time.h&gt;</NoteLine>
+   <NoteLine>#include &lt;xlocale.h&gt;</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>struct tm</NoteLine>
+   <NoteLine>int    tm_sec   seconds [0,61]</NoteLine>
+   <NoteLine>int    tm_min   minutes [0,59]</NoteLine>
+   <NoteLine>int    tm_hour  hour [0,23]</NoteLine>
+   <NoteLine>int    tm_mday  day of month [1,31]</NoteLine>
+   <NoteLine>int    tm_mon   month of year [0,11]</NoteLine>
+   <NoteLine>int    tm_year  years since 1900</NoteLine>
+   <NoteLine>int    tm_wday  day of week [0,6] (Sunday = 0)</NoteLine>
+   <NoteLine>int    tm_yday  day of year [0,365]</NoteLine>
+   <NoteLine>int    tm_isdst daylight savings flag</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>BSD</NoteLine>
+   <NoteLine>struct tm {</NoteLine>
+   <NoteLine>int    tm_sec;        /* seconds after the minute [0-60] */</NoteLine>
+   <NoteLine>int    tm_min;        /* minutes after the hour [0-59] */</NoteLine>
+   <NoteLine>int    tm_hour;    /* hours since midnight [0-23] */</NoteLine>
+   <NoteLine>int    tm_mday;    /* day of the month [1-31] */</NoteLine>
+   <NoteLine>int    tm_mon;        /* months since January [0-11] */</NoteLine>
+   <NoteLine>int    tm_year;    /* years since 1900 */</NoteLine>
+   <NoteLine>int    tm_wday;    /* days since Sunday [0-6] */</NoteLine>
+   <NoteLine>int    tm_yday;    /* days since January 1 [0-365] */</NoteLine>
+   <NoteLine>int    tm_isdst;    /* Daylight Savings Time flag */</NoteLine>
+   <NoteLine>long    tm_gmtoff;    /* offset from CUT in seconds */</NoteLine>
+   <NoteLine>char    *tm_zone;    /* timezone abbreviation */</NoteLine>
+   <NoteLine>};</NoteLine>
+  </ItemSource>
+  <ItemFlags>0</ItemFlags>
+ </Note>
+ <ViewBehavior>
+  <ViewProperty>
+   <ObjName>Name</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>ID</PropertyGroup>
+   <InheritsFrom>Object</InheritsFrom>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Index</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>ID</PropertyGroup>
+   <PropertyValue>-2147483648</PropertyValue>
+   <InheritsFrom>Object</InheritsFrom>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Super</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>ID</PropertyGroup>
+   <InheritsFrom>Object</InheritsFrom>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Left</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>Position</PropertyGroup>
+   <PropertyValue>0</PropertyValue>
+   <InheritsFrom>Object</InheritsFrom>
+  </ViewProperty>
+  <ViewProperty>
+   <ObjName>Top</ObjName>
+   <Visible>1</Visible>
+   <PropertyGroup>Position</PropertyGroup>
+   <PropertyValue>0</PropertyValue>
+   <InheritsFrom>Object</InheritsFrom>
+  </ViewProperty>
+ </ViewBehavior>
+ <Constant>
+  <ItemName>SystemFramework</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemName>SystemFramework</ItemName>
+  <ItemType>0</ItemType>
+  <ItemDef>System.framework</ItemDef>
+  <ItemFlags>33</ItemFlags>
+ </Constant>
+ <Structure>
+  <TextEncoding>134217984</TextEncoding>
+  <ItemName>tm_bsd</ItemName>
+  <ItemFlags>0</ItemFlags>
+  <ItemName>tm_bsd</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>tm_sec as Integer</SourceLine>
+   <SourceLine>tm_min as Integer</SourceLine>
+   <SourceLine>tm_hour as Integer</SourceLine>
+   <SourceLine>tm_mday as Integer</SourceLine>
+   <SourceLine>tm_mon as Integer</SourceLine>
+   <SourceLine>tm_year as Integer</SourceLine>
+   <SourceLine>tm_wday as Integer</SourceLine>
+   <SourceLine>tm_yday as Integer</SourceLine>
+   <SourceLine>tm_isdst as Integer</SourceLine>
+   <SourceLine>tm_gmtoff as Integer</SourceLine>
+   <SourceLine>tm_zone as Ptr</SourceLine>
+  </ItemSource>
+ </Structure>
+</block>
+</RBProject>
