@@ -195,6 +195,68 @@
   <ItemParams>tm as tm_bsd</ItemParams>
   <ItemResult>Double</ItemResult>
  </Method>
+ <Method>
+  <ItemName>IsToday</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function IsToday(extends d as Date) As Boolean</SourceLine>
+   <SourceLine>dim today as new Date</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>return Round(d.TotalSeconds/86400.0) = Round(today.TotalSeconds/86400.0)</SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>extends d as Date</ItemParams>
+  <ItemResult>Boolean</ItemResult>
+ </Method>
+ <Method>
+  <ItemName>Max</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <SourceLine>Function Max(d1 as Date, d2 as Date, paramarray moredates() as Date) As Date</SourceLine>
+   <SourceLine>dim totalSecondsList() as Double</SourceLine>
+   <SourceLine>if d1 &lt;&gt; nil then</SourceLine>
+   <SourceLine>totalSecondsList.Append d1.TotalSeconds</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>if d2 &lt;&gt; nil then</SourceLine>
+   <SourceLine>totalSecondsList.Append d2.TotalSeconds</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>for each d as Date in moredates</SourceLine>
+   <SourceLine>if d &lt;&gt; nil then</SourceLine>
+   <SourceLine>totalSecondsList.Append d.TotalSeconds</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine>next</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>if UBound(totalSecondsList) &lt; 0 then</SourceLine>
+   <SourceLine>return nil</SourceLine>
+   <SourceLine>end if</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim maxTotalSeconds as Double = 0.0</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>for each value as Double in totalSecondsList</SourceLine>
+   <SourceLine>maxTotalSeconds = Max(maxTotalSeconds, value)</SourceLine>
+   <SourceLine>next</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>dim maxDate as new Date</SourceLine>
+   <SourceLine>maxDate.TotalSeconds = maxTotalSeconds</SourceLine>
+   <SourceLine>return maxDate</SourceLine>
+   <SourceLine></SourceLine>
+   <SourceLine>End Function</SourceLine>
+  </ItemSource>
+  <TextEncoding>134217984</TextEncoding>
+  <AliasName></AliasName>
+  <ItemFlags>0</ItemFlags>
+  <Shared>0</Shared>
+  <ItemParams>d1 as Date, d2 as Date, paramarray moredates() as Date</ItemParams>
+  <ItemResult>Date</ItemResult>
+ </Method>
  <Note>
   <ItemName>C declarations</ItemName>
   <Compatibility></Compatibility>
