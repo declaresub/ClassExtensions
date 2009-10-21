@@ -360,6 +360,22 @@
   </ItemSource>
   <ItemFlags>0</ItemFlags>
  </Note>
+ <Note>
+  <ItemName>Common Date Format Strings</ItemName>
+  <Compatibility></Compatibility>
+  <Visible>1</Visible>
+  <ItemSource>
+   <TextEncoding>134217984</TextEncoding>
+   <NoteLine>Common Date Format Strings</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>"%FT%T%z" ISO 8601 extended -- used to parse a datetime that looks like '2009-10-21T16:17:05-0400'.</NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine></NoteLine>
+   <NoteLine>"%a, %d %b %Y %H:%M:%S %z"  RFC 2822 -- parses datetimes like 'Tue, 20 Oct 2009 19:54:47 -0400'</NoteLine>
+  </ItemSource>
+  <ItemFlags>0</ItemFlags>
+ </Note>
  <ViewBehavior>
   <ViewProperty>
    <ObjName>Name</ObjName>
